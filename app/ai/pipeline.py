@@ -5,6 +5,7 @@ import contextlib
 import logging
 
 from app.ai.base import BaseWorker
+from app.ai.plate_crop import PlateCropTask
 from app.ai.workers.ocr_worker import OCRWorker
 from app.ai.workers.reid_worker import ReIDWorker
 from app.ai.workers.vlm_worker import VLMWorker
@@ -23,13 +24,14 @@ class PipelineRuntime:
         self.frame_queue: asyncio.Queue[Frame] = asyncio.Queue(maxsize=settings.queue_max_size)
         self.event_queue: asyncio.Queue[dict[str, object]] = asyncio.Queue(maxsize=settings.queue_max_size * 4)
         self._worker_queues: list[asyncio.Queue[Frame]] = [
-            asyncio.Queue(maxsize=settings.queue_max_size) for _ in range(4)
+            asyncio.Queue(maxsize=settings.queue_max_size) for _ in range(3)
         ]
+        self._plate_crop_queue: asyncio.Queue[PlateCropTask] = asyncio.Queue(maxsize=settings.queue_max_size)
         self._workers: list[BaseWorker] = [
-            YOLOWorker(self._worker_queues[0], self.event_queue, settings),
-            OCRWorker(self._worker_queues[1], self.event_queue, settings),
-            ReIDWorker(self._worker_queues[2], self.event_queue, settings),
-            VLMWorker(self._worker_queues[3], self.event_queue, settings),
+            YOLOWorker(self._worker_queues[0], self.event_queue, settings, self._plate_crop_queue),
+            OCRWorker(self._plate_crop_queue, self.event_queue, settings),
+            ReIDWorker(self._worker_queues[1], self.event_queue, settings),
+            VLMWorker(self._worker_queues[2], self.event_queue, settings),
         ]
         self._tasks: list[asyncio.Task[None]] = []
         self._router_task: asyncio.Task[None] | None = None

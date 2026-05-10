@@ -101,6 +101,7 @@ python database/seed_demo.py
 
 - Replace `YOLOWorker.detect` with ONNX Runtime or OpenVINO inference.
 - Replace `OCRWorker.recognize_plate` with PaddleOCR, EasyOCR, or a compact ONNX OCR model.
+- Generate OCR training crops from the prepared manifest with `python scripts/build_ocr_crops.py`.
 - Replace `ReIDWorker.extract_embedding` with a real ResNet18/ViT embedding model.
 - Replace `VLMWorker.infer` with a quantized Moondream2 or Florence-2 adapter.
 - Replace `init_db()` table creation with Alembic migrations before deployment.

@@ -1,7 +1,4 @@
-from __future__ import annotations
-
-from dataclasses import dataclass
-
+import numpy as np
 
 @dataclass(slots=True)
 class PlateCropTask:
@@ -11,3 +8,5 @@ class PlateCropTask:
     bbox: list[int]
     confidence: float
     image_crop: str
+    image_data: np.ndarray | None = None
+

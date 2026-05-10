@@ -4,3 +4,10 @@ dataset/*
 !dataset/.gitkeep
 datasets/*
 !dataset/.gitkeep
+*.tmp.drivedownload/
+*.tmp.driveupload/
+.agents
+.cache
+.codex
+yolo26n.pt
+runs/
