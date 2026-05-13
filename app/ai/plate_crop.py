@@ -1,4 +1,7 @@
+from dataclasses import dataclass
+
 import numpy as np
+
 
 @dataclass(slots=True)
 class PlateCropTask:
@@ -9,4 +12,3 @@ class PlateCropTask:
     confidence: float
     image_crop: str
     image_data: np.ndarray | None = None
-

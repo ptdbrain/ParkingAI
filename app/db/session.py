@@ -19,8 +19,26 @@ def create_engine(settings: Settings | None = None) -> AsyncEngine:
     return create_async_engine(settings.database_url, pool_pre_ping=True)
 
 
-engine = create_engine()
-SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+_engine: AsyncEngine | None = None
+_session_local: async_sessionmaker[AsyncSession] | None = None
+
+
+def get_engine() -> AsyncEngine:
+    """Return the process-level database engine, creating it on first use."""
+
+    global _engine
+    if _engine is None:
+        _engine = create_engine()
+    return _engine
+
+
+def get_session_local() -> async_sessionmaker[AsyncSession]:
+    """Return the process-level async session factory."""
+
+    global _session_local
+    if _session_local is None:
+        _session_local = async_sessionmaker(get_engine(), expire_on_commit=False)
+    return _session_local
 
 
 async def init_db() -> None:
@@ -29,12 +47,12 @@ async def init_db() -> None:
     TODO: Replace this with Alembic migrations for production deployments.
     """
 
-    async with engine.begin() as connection:
+    async with get_engine().begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
 
 
 async def get_db_session() -> AsyncIterator[AsyncSession]:
     """FastAPI dependency for async database sessions."""
 
-    async with SessionLocal() as session:
+    async with get_session_local() as session:
         yield session

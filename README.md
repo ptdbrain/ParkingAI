@@ -55,6 +55,25 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Or update the conda environment used for this project:
+
+```bash
+conda env update -n eps -f environment.yml
+conda activate eps
+```
+
+For development checks, install the dev tools as well:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+Real inference dependencies are intentionally separate because they are much heavier:
+
+```bash
+pip install -r requirements-inference.txt
+```
+
 Run the mock AI pipeline:
 
 ```bash
@@ -69,6 +88,16 @@ python scripts/run_api.py
 
 Open `frontend/index.html` in a browser. It connects to `ws://localhost:8000/ws/live`.
 
+## Inference Modes
+
+The default mode is mock inference:
+
+```bash
+PARKING_INFERENCE_MODE=mock
+```
+
+Mock mode keeps tests, demos, and the API runnable without downloaded OCR/model artifacts. Set `PARKING_INFERENCE_MODE=real` only after installing the optional inference dependencies and placing model artifacts under `models/`.
+
 ## Database
 
 The default database URL uses SQLite so the demo starts without MySQL:
@@ -81,6 +110,12 @@ For production MySQL:
 
 ```bash
 PARKING_DATABASE_URL=mysql+asyncmy://parking_user:parking_pass@127.0.0.1:3306/parking
+```
+
+Apply migrations for managed databases:
+
+```bash
+alembic upgrade head
 ```
 
 Seed demo data:
@@ -100,11 +135,20 @@ python database/seed_demo.py
 ## Extension Points
 
 - Replace `YOLOWorker.detect` with ONNX Runtime or OpenVINO inference.
-- Replace `OCRWorker.recognize_plate` with PaddleOCR, EasyOCR, or a compact ONNX OCR model.
+- Run `OCRWorker` in `real` mode with EasyOCR, PaddleOCR, or a compact ONNX OCR model.
 - Generate OCR training crops from the prepared manifest with `python scripts/build_ocr_crops.py`.
 - Replace `ReIDWorker.extract_embedding` with a real ResNet18/ViT embedding model.
 - Replace `VLMWorker.infer` with a quantized Moondream2 or Florence-2 adapter.
-- Replace `init_db()` table creation with Alembic migrations before deployment.
+- Use Alembic migrations from `database/migrations` before deployment.
+
+## Artifact Policy
+
+Large datasets, training runs, and checkpoints are intentionally ignored by git. Keep generated artifacts in one of these locations and document the exact source:
+
+- `dataset/processed/` for prepared local data.
+- `runs/` for local training output.
+- `models/` for exported runtime artifacts.
+- External storage such as Git LFS, Drive, S3, or a model registry for anything teammates need to reproduce.
 
 ## Tests
 

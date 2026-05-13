@@ -29,6 +29,7 @@ class Settings:
     app_name: str = os.getenv("PARKING_APP_NAME", "Edge AI Parking System")
     environment: str = os.getenv("PARKING_ENVIRONMENT", "development")
     log_level: str = os.getenv("PARKING_LOG_LEVEL", "INFO")
+    inference_mode: str = os.getenv("PARKING_INFERENCE_MODE", "mock")
 
     database_url: str = os.getenv(
         "PARKING_DATABASE_URL",

@@ -9,5 +9,8 @@ datasets/*
 .agents
 .cache
 .codex
+__pycache__/
+*.py[cod]
+.pytest_cache/
 yolo26n.pt
 runs/

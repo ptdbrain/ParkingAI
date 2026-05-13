@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.backend.api.deps import get_slot_service
 from app.db.schemas import SlotCreate, SlotRead
+from app.services.errors import DuplicateResourceError, ValidationError
 from app.services.slot_service import SlotService
 
 router = APIRouter(prefix="/slots", tags=["slots"])
@@ -28,5 +29,10 @@ async def create_slot(
 ) -> SlotRead:
     """Create a parking slot."""
 
-    slot = await service.create_slot(payload)
+    try:
+        slot = await service.create_slot(payload)
+    except DuplicateResourceError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except ValidationError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return SlotRead.model_validate(slot)

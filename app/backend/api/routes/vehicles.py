@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.backend.api.deps import get_vehicle_service
 from app.db.schemas import VehicleCreate, VehicleRead
+from app.services.errors import DuplicateResourceError
 from app.services.vehicle_service import VehicleService
 
 router = APIRouter(prefix="/vehicles", tags=["vehicles"])
@@ -28,5 +29,8 @@ async def create_vehicle(
 ) -> VehicleRead:
     """Register a vehicle."""
 
-    vehicle = await service.register_vehicle(payload)
+    try:
+        vehicle = await service.register_vehicle(payload)
+    except DuplicateResourceError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     return VehicleRead.model_validate(vehicle)

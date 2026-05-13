@@ -3,6 +3,7 @@ from __future__ import annotations
 from app.db.models import Vehicle
 from app.db.repositories import VehicleRepository
 from app.db.schemas import VehicleCreate
+from app.services.errors import DuplicateResourceError
 
 
 class VehicleService:
@@ -17,9 +18,14 @@ class VehicleService:
         return await self.repository.list()
 
     async def register_vehicle(self, payload: VehicleCreate) -> Vehicle:
-        """Register a new vehicle.
+        """Register a new vehicle."""
 
-        TODO: Add duplicate handling and resident ownership validation.
-        """
+        normalized = payload.model_copy(update={"plate_text": self._normalize_plate(payload.plate_text)})
+        if await self.repository.get_by_plate(normalized.plate_text) is not None:
+            raise DuplicateResourceError("vehicle", normalized.plate_text)
+        return await self.repository.create(normalized)
 
-        return await self.repository.create(payload)
+    def _normalize_plate(self, plate_text: str) -> str:
+        """Normalize plate text to the compact canonical form used for uniqueness."""
+
+        return "".join(character for character in plate_text.upper() if character.isalnum())
