@@ -132,6 +132,29 @@ python database/seed_demo.py
 - Prefer YOLO nano/small models exported to INT8 ONNX/OpenVINO.
 - Use FAISS CPU for Re-ID first; Milvus is unnecessary unless you outgrow local search.
 
+## OCR Training
+
+Generate license plate crops from the prepared OCR manifest:
+
+```bash
+python scripts/build_ocr_crops.py --manifest dataset/processed/ocr/ocr_manifest.csv --output-root dataset/processed/ocr
+```
+
+Train the compact CRNN/CTC OCR model:
+
+```bash
+python training/train_easyocr.py \
+  --manifest dataset/processed/ocr/ocr_crops_manifest.csv \
+  --train_data dataset/processed/ocr/crops/train \
+  --valid_data dataset/processed/ocr/crops/val \
+  --output_dir models/ocr \
+  --epochs 50 \
+  --batch_size 32 \
+  --device auto
+```
+
+The best checkpoint is written to `models/ocr/crnn_ocr_best.pt`; the latest epoch is written to `models/ocr/crnn_ocr_last.pt`.
+
 ## Extension Points
 
 - Replace `YOLOWorker.detect` with ONNX Runtime or OpenVINO inference.

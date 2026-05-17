@@ -3,141 +3,1133 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Edge AI Parking Dashboard</title>
+    <title>Edge Parking Operations</title>
     <style>
       :root {
-        color-scheme: light;
-        --bg: #f4f7f5;
-        --ink: #17211b;
-        --muted: #5f6b63;
-        --line: #cbd8cf;
-        --accent: #0f7c63;
-        --danger: #c9362b;
-        --warn: #be7b00;
+        color-scheme: dark;
+        --page: oklch(0.155 0.017 178);
+        --page-2: oklch(0.19 0.018 178);
+        --surface: oklch(0.235 0.019 182);
+        --surface-2: oklch(0.205 0.018 180);
+        --surface-3: oklch(0.285 0.021 182);
+        --surface-raised: oklch(0.275 0.022 184);
+        --ink: oklch(0.955 0.008 178);
+        --muted: oklch(0.725 0.023 178);
+        --quiet: oklch(0.595 0.024 178);
+        --line: oklch(0.355 0.031 178);
+        --line-soft: oklch(0.315 0.027 178);
+        --accent: oklch(0.73 0.142 204);
+        --accent-strong: oklch(0.66 0.17 213);
+        --accent-soft: oklch(0.285 0.063 207);
+        --info: oklch(0.75 0.13 240);
+        --info-soft: oklch(0.28 0.057 238);
+        --warn: oklch(0.79 0.14 78);
+        --warn-soft: oklch(0.31 0.061 78);
+        --danger: oklch(0.72 0.17 29);
+        --danger-soft: oklch(0.315 0.07 29);
+        --success: oklch(0.74 0.13 158);
+        --success-soft: oklch(0.285 0.06 158);
+        --shadow: 0 22px 60px oklch(0.08 0.012 178 / 0.38);
+        --glow: 0 0 0 1px oklch(0.72 0.13 204 / 0.16), 0 18px 48px oklch(0.65 0.13 204 / 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
       }
 
       body {
         margin: 0;
-        background: linear-gradient(135deg, #f4f7f5 0%, #e8efe9 52%, #f7f4ee 100%);
+        min-height: 100vh;
+        background: var(--page);
         color: var(--ink);
-        font-family: "Segoe UI", sans-serif;
+        font: 14px/1.45 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
       }
 
-      main {
+      button {
+        font: inherit;
+      }
+
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .app-shell {
         display: grid;
-        grid-template-columns: minmax(280px, 1fr) 360px;
+        grid-template-columns: 260px minmax(0, 1fr);
         min-height: 100vh;
       }
 
-      .map {
-        padding: 32px;
+      .sidebar {
+        background: oklch(0.18 0.018 178 / 0.96);
+        border-right: 1px solid var(--line-soft);
+        padding: 20px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        box-shadow: 12px 0 42px oklch(0.08 0.012 178 / 0.22);
       }
 
-      .slots {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 14px;
-        max-width: 760px;
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 38px;
       }
 
-      .slot {
-        aspect-ratio: 1.4;
-        border: 2px solid var(--line);
+      .brand-mark {
+        width: 38px;
+        height: 38px;
         border-radius: 8px;
+        background: var(--surface-raised);
+        border: 1px solid oklch(0.58 0.12 204 / 0.45);
+        color: var(--accent);
         display: grid;
         place-items: center;
-        font-weight: 700;
-        background: rgba(255, 255, 255, 0.72);
+        font-weight: 800;
+        letter-spacing: 0;
+        box-shadow: 0 0 24px oklch(0.68 0.14 204 / 0.16);
       }
 
-      .slot.occupied {
-        border-color: var(--accent);
-        background: #dff3ec;
+      .brand-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: 0;
       }
 
-      .slot.alert {
-        border-color: var(--danger);
-        background: #ffe4df;
+      .brand-subtitle {
+        color: var(--muted);
+        font-size: 12px;
       }
 
-      aside {
-        border-left: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.78);
-        padding: 24px;
-        overflow: auto;
+      .nav-group {
+        display: grid;
+        gap: 6px;
+      }
+
+      .nav-label {
+        color: var(--quiet);
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        margin: 0 0 4px;
+      }
+
+      .nav-item {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        width: 100%;
+        min-height: 34px;
+        border-radius: 8px;
+        padding: 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: background 180ms ease-out, color 180ms ease-out, transform 180ms ease-out;
+      }
+
+      .nav-item[aria-current="page"] {
+        color: var(--ink);
+        background: var(--surface);
+        box-shadow: var(--glow);
+      }
+
+      .nav-item:hover {
+        color: var(--ink);
+        background: oklch(0.255 0.022 182);
+        transform: translateX(2px);
+      }
+
+      .nav-count {
+        color: var(--quiet);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .sidebar-footer {
+        margin-top: auto;
+        border: 1px solid var(--line-soft);
+        border-radius: 8px;
+        padding: 12px;
+        background: var(--surface-2);
+        box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.04);
+      }
+
+      .sidebar-footer .health-row + .health-row {
+        margin-top: 10px;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--quiet);
+        display: inline-block;
+      }
+
+      .status-dot.good {
+        background: var(--success);
+        box-shadow: 0 0 14px oklch(0.74 0.13 158 / 0.55);
+      }
+
+      .status-dot.bad {
+        background: var(--danger);
+        box-shadow: 0 0 14px oklch(0.72 0.17 29 / 0.4);
+      }
+
+      .workspace {
+        min-width: 0;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+
+      .topbar {
+        min-height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 28px;
+        background: oklch(0.18 0.018 178 / 0.98);
+        border-bottom: 1px solid var(--line-soft);
+        box-shadow: 0 10px 32px oklch(0.08 0.012 178 / 0.22);
+      }
+
+      .page-title {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        flex-wrap: wrap;
       }
 
       h1 {
-        margin: 0 0 24px;
-        font-size: 28px;
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.2;
+        letter-spacing: 0;
       }
 
-      h2 {
-        margin: 0 0 16px;
-        font-size: 18px;
+      .timestamp {
+        color: var(--muted);
+        font-size: 12px;
       }
 
-      .event {
-        border-bottom: 1px solid var(--line);
-        padding: 12px 0;
-        font-size: 14px;
+      .topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
-      .event strong {
-        display: block;
-        margin-bottom: 4px;
+      .button {
+        min-height: 36px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        padding: 0 14px;
+        cursor: pointer;
+        box-shadow: 0 1px 0 oklch(1 0 0 / 0.04) inset;
+        transition: background 180ms ease-out, border-color 180ms ease-out, transform 180ms ease-out;
       }
 
-      .muted {
+      .button.primary {
+        border-color: oklch(0.68 0.14 204 / 0.7);
+        background: var(--accent-strong);
+        color: oklch(0.98 0.006 204);
+        font-weight: 760;
+        box-shadow: 0 14px 30px oklch(0.62 0.14 204 / 0.22);
+      }
+
+      .button:hover {
+        border-color: oklch(0.62 0.08 204 / 0.72);
+        transform: translateY(-1px);
+      }
+
+      .button:active {
+        transform: translateY(0);
+      }
+
+      .dashboard {
+        padding: 22px 28px 28px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 372px;
+        gap: 18px;
+        align-items: start;
+      }
+
+      .main-stack,
+      .side-stack {
+        min-width: 0;
+        display: grid;
+        gap: 18px;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(130px, 1fr));
+        gap: 10px;
+      }
+
+      .metric {
+        border: 1px solid var(--line-soft);
+        background: var(--surface);
+        border-radius: 8px;
+        padding: 14px;
+        display: grid;
+        gap: 6px;
+        min-height: 96px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+
+      .metric::after {
+        content: "";
+        position: absolute;
+        inset: auto 14px 12px 14px;
+        height: 2px;
+        border-radius: 999px;
+        background: var(--line-soft);
+      }
+
+      .metric:first-child::after,
+      .metric:nth-child(2)::after {
+        background: var(--accent);
+        box-shadow: 0 0 18px oklch(0.72 0.14 204 / 0.35);
+      }
+
+      .metric span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .metric strong {
+        font-size: 26px;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0;
+      }
+
+      .metric small {
+        color: var(--quiet);
+      }
+
+      .panel {
+        border: 1px solid var(--line-soft);
+        border-radius: 8px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .panel-header {
+        min-height: 54px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--line-soft);
+      }
+
+      .panel-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+
+      .panel-note {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .slot-map {
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(108px, 1fr));
+        gap: 10px;
+      }
+
+      .slot {
+        min-height: 104px;
+        border: 1px solid var(--line-soft);
+        border-radius: 8px;
+        background: var(--surface-2);
+        padding: 12px;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 8px;
+        transition: background 180ms ease-out, border-color 180ms ease-out, transform 180ms ease-out;
+      }
+
+      .slot:hover {
+        transform: translateY(-1px);
+      }
+
+      .slot.occupied {
+        background: var(--success-soft);
+        border-color: oklch(0.62 0.09 158);
+        box-shadow: inset 0 0 0 1px oklch(0.72 0.12 158 / 0.08);
+      }
+
+      .slot.reserved {
+        background: var(--info-soft);
+        border-color: oklch(0.62 0.085 240);
+      }
+
+      .slot.alert {
+        background: var(--danger-soft);
+        border-color: oklch(0.62 0.11 29);
+      }
+
+      .slot-code {
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+
+      .slot-status {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .slot-plate {
+        align-self: end;
+        font-size: 12px;
+        font-weight: 760;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .event-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .table-scroll {
+        overflow-x: auto;
+      }
+
+      .table-scroll .event-table {
+        min-width: 560px;
+      }
+
+      .event-table th,
+      .event-table td {
+        text-align: left;
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--line-soft);
+        vertical-align: top;
+      }
+
+      .event-table th {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 760;
+        text-transform: uppercase;
+        letter-spacing: 0;
+      }
+
+      .event-type {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        border-radius: 999px;
+        padding: 0 8px;
+        background: var(--surface-3);
+        font-size: 12px;
+        font-weight: 760;
+      }
+
+      .event-type.event-fire,
+      .event-type.event-anomaly {
+        background: var(--danger-soft);
+        color: var(--danger);
+      }
+
+      .event-type.event-car {
+        background: var(--success-soft);
+        color: var(--success);
+      }
+
+      .event-type.event-slot {
+        background: var(--info-soft);
+        color: var(--info);
+      }
+
+      .confidence {
+        font-variant-numeric: tabular-nums;
         color: var(--muted);
       }
 
-      @media (max-width: 760px) {
-        main {
+      .list {
+        display: grid;
+      }
+
+      .list-row {
+        min-height: 48px;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--line-soft);
+      }
+
+      .list-row:last-child {
+        border-bottom: 0;
+      }
+
+      .plate {
+        font-weight: 820;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .subtle {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .alert-item {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line-soft);
+        display: grid;
+        gap: 4px;
+      }
+
+      .alert-item:last-child {
+        border-bottom: 0;
+      }
+
+      .empty {
+        color: var(--muted);
+        padding: 18px 14px;
+      }
+
+      .health {
+        display: grid;
+        gap: 10px;
+        padding: 12px 14px;
+      }
+
+      .health-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .health-row .subtle,
+      .list-row .subtle {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        text-align: right;
+      }
+
+      .health-name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      @media (max-width: 1180px) {
+        .dashboard {
           grid-template-columns: 1fr;
         }
 
-        aside {
-          border-left: 0;
-          border-top: 1px solid var(--line);
+        .side-stack {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 860px) {
+        .app-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          display: none;
+        }
+
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .topbar-actions {
+          width: 100%;
+          justify-content: stretch;
+        }
+
+        .button {
+          flex: 1;
+        }
+
+        .metrics,
+        .side-stack {
+          grid-template-columns: 1fr;
+        }
+
+        .slot-map {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .dashboard {
+          padding: 14px;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .table-scroll {
+          overflow-x: visible;
+        }
+
+        .table-scroll .event-table {
+          min-width: 0;
+        }
+
+        .event-table thead {
+          display: none;
+        }
+
+        .event-table,
+        .event-table tbody,
+        .event-table tr,
+        .event-table td {
+          display: block;
+        }
+
+        .event-table tr {
+          padding: 12px 14px;
+          border-bottom: 1px solid var(--line-soft);
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 8px 12px;
+        }
+
+        .event-table td {
+          border-bottom: 0;
+          padding: 0;
+        }
+
+        .event-table td:nth-child(2) {
+          grid-column: 1 / -1;
+          font-weight: 720;
+        }
+
+        .event-table td:nth-child(3)::before {
+          content: "Confidence ";
+          color: var(--quiet);
+        }
+
+        .event-table td:nth-child(4)::before {
+          content: "Frame ";
+          color: var(--quiet);
+        }
+
+        .health .health-row {
+          align-items: flex-start;
+          display: grid;
+          gap: 4px;
+          justify-content: stretch;
+        }
+
+        .health .health-row .subtle {
+          text-align: left;
         }
       }
     </style>
   </head>
   <body>
-    <main>
-      <section class="map">
-        <h1>Edge AI Parking Dashboard</h1>
-        <div class="slots" id="slots"></div>
-      </section>
-      <aside>
-        <h2>Live Events</h2>
-        <div id="events" class="muted">Waiting for WebSocket events...</div>
-      </aside>
-    </main>
-    <script>
-      const slots = document.querySelector("#slots");
-      const events = document.querySelector("#events");
-      ["A-01", "A-02", "A-03", "A-04", "B-01", "B-02", "B-03", "B-04"].forEach((code, index) => {
-        const slot = document.createElement("div");
-        slot.className = `slot ${index % 3 === 0 ? "occupied" : ""}`;
-        slot.textContent = code;
-        slots.appendChild(slot);
-      });
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Operations navigation">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">EP</div>
+          <div>
+            <p class="brand-title">Edge Parking</p>
+            <div class="brand-subtitle">Operations console</div>
+          </div>
+        </div>
 
-      const socket = new WebSocket(`ws://${location.hostname || "localhost"}:8000/ws/live`);
-      socket.onmessage = (message) => {
-        const payload = JSON.parse(message.data);
-        if (payload.type === "heartbeat") return;
-        if (events.classList.contains("muted")) {
-          events.textContent = "";
-          events.classList.remove("muted");
-        }
-        const item = document.createElement("div");
-        item.className = "event";
-        item.innerHTML = `<strong>${payload.type.toUpperCase()} confidence=${payload.confidence}</strong><span>${payload.plate_text || payload.description || payload.timestamp}</span>`;
-        events.prepend(item);
+        <nav class="nav-group" aria-label="Dashboard sections">
+          <p class="nav-label">Workspace</p>
+          <button class="nav-item" aria-current="page">
+            <span>Live floor</span>
+            <span class="nav-count" id="navLiveCount">0</span>
+          </button>
+          <button class="nav-item">
+            <span>Vehicles</span>
+            <span class="nav-count" id="navVehicleCount">0</span>
+          </button>
+          <button class="nav-item">
+            <span>Incidents</span>
+            <span class="nav-count" id="navAlertCount">0</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="health-row">
+            <span class="health-name">
+              <span class="status-dot" id="wsDot"></span>
+              WebSocket
+            </span>
+            <span class="subtle" id="wsState">connecting</span>
+          </div>
+          <div class="health-row">
+            <span class="health-name">
+              <span class="status-dot" id="apiDot"></span>
+              REST API
+            </span>
+            <span class="subtle" id="apiState">checking</span>
+          </div>
+        </div>
+      </aside>
+
+      <div class="workspace">
+        <header class="topbar">
+          <div class="page-title">
+            <h1>Live parking floor</h1>
+            <span class="timestamp" id="clock">Starting dashboard</span>
+          </div>
+          <div class="topbar-actions">
+            <button class="button" id="refreshButton" type="button">Refresh data</button>
+            <button class="button primary" id="demoButton" type="button">Load demo state</button>
+          </div>
+        </header>
+
+        <main class="dashboard">
+          <section class="main-stack" aria-label="Live operations">
+            <div class="metrics" aria-label="Current summary">
+              <div class="metric">
+                <span>Occupancy</span>
+                <strong id="occupancyMetric">0/12</strong>
+                <small id="occupancyNote">No live slot events yet</small>
+              </div>
+              <div class="metric">
+                <span>Recognized plates</span>
+                <strong id="plateMetric">0</strong>
+                <small>From OCR stream</small>
+              </div>
+              <div class="metric">
+                <span>Model events</span>
+                <strong id="eventMetric">0</strong>
+                <small id="eventNote">Waiting for first frame</small>
+              </div>
+              <div class="metric">
+                <span>Safety queue</span>
+                <strong id="alertMetric">0</strong>
+                <small>Fire and anomaly events</small>
+              </div>
+            </div>
+
+            <section class="panel" aria-labelledby="slotMapTitle">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title" id="slotMapTitle">Parking map</h2>
+                  <div class="panel-note">Slot state updates from REST and live events</div>
+                </div>
+                <span class="panel-note" id="slotUpdated">Local demo state</span>
+              </div>
+              <div class="slot-map" id="slotMap"></div>
+            </section>
+
+            <section class="panel" aria-labelledby="eventTitle">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title" id="eventTitle">Live recognition stream</h2>
+                  <div class="panel-note">YOLO detections, OCR plate reads, slot and safety events</div>
+                </div>
+              </div>
+              <div class="table-scroll">
+                <table class="event-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Type</th>
+                      <th scope="col">Details</th>
+                      <th scope="col">Confidence</th>
+                      <th scope="col">Frame</th>
+                    </tr>
+                  </thead>
+                  <tbody id="eventRows"></tbody>
+                </table>
+              </div>
+              <div class="empty" id="eventEmpty">No events yet. Start the API to stream live detections.</div>
+            </section>
+          </section>
+
+          <aside class="side-stack" aria-label="Details and incidents">
+            <section class="panel" aria-labelledby="alertTitle">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title" id="alertTitle">Incident queue</h2>
+                  <div class="panel-note">Needs operator review</div>
+                </div>
+              </div>
+              <div id="alertList"></div>
+            </section>
+
+            <section class="panel" aria-labelledby="vehicleTitle">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title" id="vehicleTitle">Recent vehicles</h2>
+                  <div class="panel-note">Plates seen by OCR</div>
+                </div>
+              </div>
+              <div class="list" id="vehicleList"></div>
+            </section>
+
+            <section class="panel" aria-labelledby="healthTitle">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title" id="healthTitle">System checks</h2>
+                  <div class="panel-note">Runtime connection status</div>
+                </div>
+              </div>
+              <div class="health">
+                <div class="health-row">
+                  <span>API endpoint</span>
+                  <span class="subtle" id="apiUrl"></span>
+                </div>
+                <div class="health-row">
+                  <span>WebSocket endpoint</span>
+                  <span class="subtle" id="wsUrl"></span>
+                </div>
+                <div class="health-row">
+                  <span>Last heartbeat</span>
+                  <span class="subtle" id="lastHeartbeat">none</span>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const apiBase = "http://localhost:8000";
+      const wsBase = `ws://${location.hostname || "localhost"}:8000/ws/live`;
+      const defaultSlots = [
+        "A-01",
+        "A-02",
+        "A-03",
+        "A-04",
+        "B-01",
+        "B-02",
+        "B-03",
+        "B-04",
+        "C-01",
+        "C-02",
+        "C-03",
+        "C-04",
+      ].map((code) => ({ slot_code: code, status: "vacant", plate_text: "" }));
+
+      const state = {
+        slots: [...defaultSlots],
+        events: [],
+        vehicles: [],
+        alerts: [],
+        connected: false,
+        apiOnline: false,
       };
+
+      const elements = {
+        apiDot: document.querySelector("#apiDot"),
+        apiState: document.querySelector("#apiState"),
+        apiUrl: document.querySelector("#apiUrl"),
+        alertList: document.querySelector("#alertList"),
+        alertMetric: document.querySelector("#alertMetric"),
+        clock: document.querySelector("#clock"),
+        demoButton: document.querySelector("#demoButton"),
+        eventEmpty: document.querySelector("#eventEmpty"),
+        eventMetric: document.querySelector("#eventMetric"),
+        eventNote: document.querySelector("#eventNote"),
+        eventRows: document.querySelector("#eventRows"),
+        lastHeartbeat: document.querySelector("#lastHeartbeat"),
+        navAlertCount: document.querySelector("#navAlertCount"),
+        navLiveCount: document.querySelector("#navLiveCount"),
+        navVehicleCount: document.querySelector("#navVehicleCount"),
+        occupancyMetric: document.querySelector("#occupancyMetric"),
+        occupancyNote: document.querySelector("#occupancyNote"),
+        plateMetric: document.querySelector("#plateMetric"),
+        refreshButton: document.querySelector("#refreshButton"),
+        slotMap: document.querySelector("#slotMap"),
+        slotUpdated: document.querySelector("#slotUpdated"),
+        vehicleList: document.querySelector("#vehicleList"),
+        wsDot: document.querySelector("#wsDot"),
+        wsState: document.querySelector("#wsState"),
+        wsUrl: document.querySelector("#wsUrl"),
+      };
+
+      elements.apiUrl.textContent = apiBase;
+      elements.wsUrl.textContent = wsBase;
+      elements.refreshButton.addEventListener("click", refreshData);
+      elements.demoButton.addEventListener("click", loadDemoState);
+
+      setInterval(updateClock, 1000);
+      updateClock();
+      render();
+      refreshData();
+      connectLiveStream();
+
+      async function refreshData() {
+        const [slots, vehicles] = await Promise.all([fetchJson("/slots"), fetchJson("/vehicles")]);
+        state.apiOnline = Boolean(slots.ok || vehicles.ok);
+        setApiState(state.apiOnline, state.apiOnline ? "online" : "offline");
+        if (slots.ok && Array.isArray(slots.data) && slots.data.length > 0) {
+          state.slots = slots.data.map((slot) => ({
+            slot_code: slot.slot_code,
+            status: slot.status || "vacant",
+            plate_text: slot.current_vehicle_id ? `ID ${slot.current_vehicle_id}` : "",
+          }));
+          elements.slotUpdated.textContent = "Synced from API";
+        }
+        if (vehicles.ok && Array.isArray(vehicles.data)) {
+          state.vehicles = vehicles.data.slice(0, 8).map((vehicle) => ({
+            plate_text: vehicle.plate_text,
+            meta: vehicle.owner_name || "registered vehicle",
+          }));
+        }
+        render();
+      }
+
+      async function fetchJson(path) {
+        try {
+          const response = await fetch(`${apiBase}${path}`);
+          if (!response.ok) return { ok: false, data: null };
+          return { ok: true, data: await response.json() };
+        } catch (_error) {
+          return { ok: false, data: null };
+        }
+      }
+
+      function connectLiveStream() {
+        setWsState(false, "connecting");
+        const socket = new WebSocket(wsBase);
+
+        socket.addEventListener("open", () => {
+          state.connected = true;
+          setWsState(true, "online");
+        });
+
+        socket.addEventListener("message", (message) => {
+          const payload = JSON.parse(message.data);
+          if (payload.type === "heartbeat") {
+            elements.lastHeartbeat.textContent = new Date().toLocaleTimeString();
+            return;
+          }
+          handleEvent(payload);
+        });
+
+        socket.addEventListener("close", () => {
+          state.connected = false;
+          setWsState(false, "reconnecting");
+          window.setTimeout(connectLiveStream, 2500);
+        });
+
+        socket.addEventListener("error", () => {
+          state.connected = false;
+          setWsState(false, "offline");
+        });
+      }
+
+      function handleEvent(event) {
+        const normalized = {
+          type: String(event.type || "event"),
+          confidence: Number(event.confidence || 0),
+          detail: event.plate_text || event.description || event.image_crop || "Detection received",
+          frame_id: event.frame_id || "-",
+          timestamp: event.timestamp || new Date().toISOString(),
+        };
+        state.events.unshift(normalized);
+        state.events = state.events.slice(0, 18);
+
+        if (event.plate_text) {
+          upsertVehicle(event.plate_text, `frame ${event.frame_id || "-"}`);
+          occupyNextVacantSlot(event.plate_text);
+        }
+
+        if (normalized.type === "fire" || normalized.type === "anomaly") {
+          state.alerts.unshift(normalized);
+          state.alerts = state.alerts.slice(0, 8);
+        }
+
+        render();
+      }
+
+      function upsertVehicle(plateText, meta) {
+        const existing = state.vehicles.find((vehicle) => vehicle.plate_text === plateText);
+        if (existing) {
+          existing.meta = meta;
+          return;
+        }
+        state.vehicles.unshift({ plate_text: plateText, meta });
+        state.vehicles = state.vehicles.slice(0, 8);
+      }
+
+      function occupyNextVacantSlot(plateText) {
+        const existing = state.slots.find((slot) => slot.plate_text === plateText);
+        if (existing) return;
+        const slot = state.slots.find((item) => item.status === "vacant") || state.slots[0];
+        slot.status = "occupied";
+        slot.plate_text = plateText;
+        elements.slotUpdated.textContent = "Updated from OCR event";
+      }
+
+      function loadDemoState() {
+        state.slots = defaultSlots.map((slot, index) => ({
+          ...slot,
+          status: index % 5 === 0 ? "reserved" : index % 3 === 0 ? "occupied" : "vacant",
+          plate_text: index % 3 === 0 ? ["51A12345", "59B67890", "30F24680", "61C13579"][index % 4] : "",
+        }));
+        state.vehicles = [
+          { plate_text: "51A12345", meta: "Toyota, resident" },
+          { plate_text: "59B67890", meta: "visitor lane" },
+          { plate_text: "30F24680", meta: "monthly pass" },
+        ];
+        state.events = [
+          { type: "car", detail: "51A12345", confidence: 0.92, frame_id: 108, timestamp: new Date().toISOString() },
+          { type: "slot", detail: "A-04 occupied", confidence: 0.88, frame_id: 106, timestamp: new Date().toISOString() },
+          { type: "fire", detail: "Low confidence fire candidate", confidence: 0.42, frame_id: 101, timestamp: new Date().toISOString() },
+        ];
+        state.alerts = state.events.filter((event) => event.type === "fire" || event.type === "anomaly");
+        elements.slotUpdated.textContent = "Loaded demo state";
+        render();
+      }
+
+      function render() {
+        renderSlots();
+        renderEvents();
+        renderVehicles();
+        renderAlerts();
+        renderMetrics();
+      }
+
+      function renderSlots() {
+        elements.slotMap.replaceChildren(
+          ...state.slots.map((slot) => {
+            const item = document.createElement("article");
+            item.className = `slot ${slot.status === "fire" ? "alert" : slot.status}`;
+            item.setAttribute("aria-label", `${slot.slot_code} ${slot.status}`);
+
+            const code = document.createElement("div");
+            code.className = "slot-code";
+            code.textContent = slot.slot_code;
+
+            const status = document.createElement("div");
+            status.className = "slot-status";
+            status.textContent = slot.status;
+
+            const plate = document.createElement("div");
+            plate.className = "slot-plate";
+            plate.textContent = slot.plate_text || "No plate";
+
+            item.append(code, status, plate);
+            return item;
+          })
+        );
+      }
+
+      function renderEvents() {
+        elements.eventRows.replaceChildren(
+          ...state.events.map((event) => {
+            const row = document.createElement("tr");
+            const typeCell = document.createElement("td");
+            const type = document.createElement("span");
+            type.className = `event-type event-${event.type}`;
+            type.textContent = event.type.toUpperCase();
+            typeCell.append(type);
+
+            const detail = document.createElement("td");
+            detail.textContent = event.detail;
+
+            const confidence = document.createElement("td");
+            confidence.className = "confidence";
+            confidence.textContent = `${Math.round(event.confidence * 100)}%`;
+
+            const frame = document.createElement("td");
+            frame.className = "confidence";
+            frame.textContent = event.frame_id;
+
+            row.append(typeCell, detail, confidence, frame);
+            return row;
+          })
+        );
+        elements.eventEmpty.hidden = state.events.length > 0;
+      }
+
+      function renderVehicles() {
+        if (state.vehicles.length === 0) {
+          elements.vehicleList.innerHTML = '<div class="empty">No recognized plates yet.</div>';
+          return;
+        }
+        elements.vehicleList.replaceChildren(
+          ...state.vehicles.map((vehicle) => {
+            const row = document.createElement("div");
+            row.className = "list-row";
+            const plate = document.createElement("span");
+            plate.className = "plate";
+            plate.textContent = vehicle.plate_text;
+            const meta = document.createElement("span");
+            meta.className = "subtle";
+            meta.textContent = vehicle.meta;
+            row.append(plate, meta);
+            return row;
+          })
+        );
+      }
+
+      function renderAlerts() {
+        if (state.alerts.length === 0) {
+          elements.alertList.innerHTML = '<div class="empty">No active incidents.</div>';
+          return;
+        }
+        elements.alertList.replaceChildren(
+          ...state.alerts.map((alert) => {
+            const item = document.createElement("div");
+            item.className = "alert-item";
+            const title = document.createElement("strong");
+            title.textContent = alert.type.toUpperCase();
+            const detail = document.createElement("span");
+            detail.className = "subtle";
+            detail.textContent = `${alert.detail}, confidence ${Math.round(alert.confidence * 100)}%`;
+            item.append(title, detail);
+            return item;
+          })
+        );
+      }
+
+      function renderMetrics() {
+        const occupied = state.slots.filter((slot) => slot.status === "occupied").length;
+        const alerts = state.alerts.length;
+        const plates = state.vehicles.length;
+        elements.occupancyMetric.textContent = `${occupied}/${state.slots.length}`;
+        elements.occupancyNote.textContent = occupied ? "Occupied slots detected" : "All visible slots are free";
+        elements.plateMetric.textContent = String(plates);
+        elements.eventMetric.textContent = String(state.events.length);
+        elements.eventNote.textContent = state.events[0] ? `Last: ${state.events[0].type}` : "Waiting for first frame";
+        elements.alertMetric.textContent = String(alerts);
+        elements.navLiveCount.textContent = String(state.events.length);
+        elements.navVehicleCount.textContent = String(plates);
+        elements.navAlertCount.textContent = String(alerts);
+      }
+
+      function setApiState(online, label) {
+        elements.apiDot.className = `status-dot ${online ? "good" : "bad"}`;
+        elements.apiState.textContent = label;
+      }
+
+      function setWsState(online, label) {
+        elements.wsDot.className = `status-dot ${online ? "good" : "bad"}`;
+        elements.wsState.textContent = label;
+      }
+
+      function updateClock() {
+        elements.clock.textContent = new Date().toLocaleString();
+      }
     </script>
   </body>
 </html>

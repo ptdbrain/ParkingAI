@@ -1,16 +1,85 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+
+# Test and coverage output
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# Virtual environments and local Python tooling
+.venv/
+venv/
+env/
+ENV/
+pip-wheel-metadata/
+*.egg-info/
+build/
+dist/
+
+# Local environment and secrets
 .env
+.env.*
+!.env.example
 config.json
+local_settings.py
+
+# Local databases and generated state
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+edge_parking_demo.db
+
+# Datasets and generated training artifacts
 dataset/*
 !dataset/.gitkeep
 datasets/*
-!dataset/.gitkeep
+!datasets/.gitkeep
+runs/
+wandb/
+mlruns/
+outputs/
+checkpoints/
+weights/
+artifacts/
+
+# Model checkpoints and exported engines
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.engine
+*.tflite
+*.pb
+*.weights
+
+# Logs and temporary files
+*.log
+logs/
+tmp/
+temp/
+*.tmp
 *.tmp.drivedownload/
 *.tmp.driveupload/
+
+# IDE, OS, and local agent state
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
 .agents
+.agents/
 .cache
+.cache/
 .codex
-__pycache__/
-*.py[cod]
-.pytest_cache/
-yolo26n.pt
-runs/
+.codex/
