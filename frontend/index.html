@@ -385,6 +385,84 @@
         padding: 14px;
       }
 
+      .camera-switcher {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .camera-option {
+        min-height: 58px;
+        border: 1px solid var(--line-soft);
+        border-radius: 8px;
+        background: var(--surface-2);
+        color: var(--ink);
+        cursor: pointer;
+        padding: 9px 10px;
+        text-align: left;
+        display: grid;
+        gap: 3px;
+        transition: border-color 180ms ease-out, background 180ms ease-out, transform 180ms ease-out;
+      }
+
+      .camera-option:hover {
+        border-color: oklch(0.55 0.06 204 / 0.72);
+        transform: translateY(-1px);
+      }
+
+      .camera-option[aria-pressed="true"] {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        box-shadow: var(--glow);
+      }
+
+      .camera-option strong {
+        font-size: 12px;
+        font-weight: 820;
+      }
+
+      .camera-option span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .camera-context {
+        border: 1px solid var(--line-soft);
+        border-radius: 8px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        overflow: hidden;
+        margin-bottom: 10px;
+      }
+
+      .camera-context-item {
+        min-height: 52px;
+        padding: 9px 10px;
+        background: var(--surface-2);
+        display: grid;
+        gap: 2px;
+        border-right: 1px solid var(--line-soft);
+      }
+
+      .camera-context-item:last-child {
+        border-right: 0;
+      }
+
+      .camera-context-item span {
+        color: var(--quiet);
+        font-size: 11px;
+      }
+
+      .camera-context-item strong {
+        min-width: 0;
+        font-size: 12px;
+        font-weight: 790;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
       .camera-frame {
         aspect-ratio: 16 / 9;
         width: 100%;
@@ -400,6 +478,35 @@
         position: absolute;
         inset: 0;
         background: oklch(0.17 0.013 178);
+      }
+
+      .camera-frame.spot-camera .camera-zone.entry,
+      .camera-frame.spot-camera .camera-guide {
+        display: none;
+      }
+
+      .camera-frame.spot-camera .camera-zone.lane {
+        inset: 16% 18% 16% 18%;
+        border-radius: 8px;
+        background: oklch(0.19 0.017 178 / 0.7);
+      }
+
+      .camera-frame.spot-camera .camera-scene::before,
+      .camera-frame.spot-camera .camera-scene::after {
+        content: "";
+        position: absolute;
+        left: 22%;
+        right: 22%;
+        height: 1px;
+        background: oklch(0.58 0.06 78 / 0.62);
+      }
+
+      .camera-frame.spot-camera .camera-scene::before {
+        top: 28%;
+      }
+
+      .camera-frame.spot-camera .camera-scene::after {
+        bottom: 28%;
       }
 
       .camera-zone {
@@ -497,6 +604,22 @@
       .overlay-slot.alert {
         border-color: var(--danger);
         background: oklch(0.28 0.08 29 / 0.58);
+      }
+
+      .camera-frame.spot-camera .overlay-slot {
+        padding: 14px;
+      }
+
+      .camera-frame.spot-camera .overlay-code {
+        font-size: 22px;
+      }
+
+      .camera-frame.spot-camera .overlay-status {
+        font-size: 12px;
+      }
+
+      .camera-frame.spot-camera .overlay-plate {
+        font-size: 16px;
       }
 
       .overlay-topline {
@@ -809,6 +932,19 @@
           justify-content: flex-start;
         }
 
+        .camera-switcher,
+        .camera-context {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .camera-context-item:nth-child(2n) {
+          border-right: 0;
+        }
+
+        .camera-context-item:nth-child(n + 3) {
+          border-top: 1px solid var(--line-soft);
+        }
+
         .camera-frame {
           min-height: 300px;
         }
@@ -841,6 +977,27 @@
           padding: 10px;
         }
 
+        .camera-switcher {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .camera-option {
+          min-height: 50px;
+        }
+
+        .camera-context {
+          grid-template-columns: 1fr;
+        }
+
+        .camera-context-item {
+          border-right: 0;
+          border-top: 1px solid var(--line-soft);
+        }
+
+        .camera-context-item:first-child {
+          border-top: 0;
+        }
+
         .camera-frame {
           aspect-ratio: auto;
           height: 250px;
@@ -860,6 +1017,19 @@
         .overlay-plate,
         .camera-meta {
           display: none;
+        }
+
+        .camera-frame.spot-camera .overlay-status,
+        .camera-frame.spot-camera .overlay-plate {
+          display: inline;
+        }
+
+        .camera-frame.spot-camera .overlay-status {
+          font-size: 10px;
+        }
+
+        .camera-frame.spot-camera .overlay-plate {
+          font-size: 12px;
         }
 
         .table-scroll {
@@ -985,15 +1155,34 @@
               <div class="panel-header">
                 <div>
                   <h2 class="panel-title" id="cameraTitle">Camera 01 overlay</h2>
-                  <div class="panel-note">Calibrated slot regions on the live frame</div>
+                  <div class="panel-note" id="cameraNote">Calibrated slot regions on the live frame</div>
                 </div>
                 <div class="camera-status">
-                  <span class="status-chip live">Live overlay</span>
+                  <span class="status-chip live" id="cameraModeLabel">Live overlay</span>
                   <span class="panel-note" id="slotUpdated">Local demo state</span>
                 </div>
               </div>
               <div class="camera-stage">
-                <div class="camera-frame">
+                <div class="camera-switcher" id="cameraSwitcher" aria-label="Camera switcher"></div>
+                <div class="camera-context" aria-label="Active camera details">
+                  <div class="camera-context-item">
+                    <span>Camera</span>
+                    <strong id="cameraName">CAM-01</strong>
+                  </div>
+                  <div class="camera-context-item">
+                    <span>Coverage</span>
+                    <strong id="cameraCoverage">All slots</strong>
+                  </div>
+                  <div class="camera-context-item">
+                    <span>Focus slot</span>
+                    <strong id="cameraFocusSlot">All</strong>
+                  </div>
+                  <div class="camera-context-item">
+                    <span>State</span>
+                    <strong id="cameraFocusState">Ready</strong>
+                  </div>
+                </div>
+                <div class="camera-frame" id="cameraFrame">
                   <div class="camera-scene" aria-hidden="true">
                     <div class="camera-zone entry"></div>
                     <div class="camera-zone lane"></div>
@@ -1005,7 +1194,7 @@
                   </div>
                   <div class="camera-overlay" id="cameraOverlay" aria-label="Numbered slot overlay"></div>
                   <div class="camera-meta">
-                    <span>CAM-01 entrance lane</span>
+                    <span id="cameraMeta">CAM-01 entrance lane</span>
                     <span id="cameraClock">waiting</span>
                   </div>
                 </div>
@@ -1140,6 +1329,72 @@
         { code: "C-03", label: "11", x: 51, y: 65, w: 19, h: 19 },
         { code: "C-04", label: "12", x: 73, y: 65, w: 19, h: 19 },
       ];
+      const entryLayouts = [
+        { code: "A-01", label: "01", x: 8, y: 18, w: 20, h: 26 },
+        { code: "A-02", label: "02", x: 31, y: 18, w: 20, h: 26 },
+        { code: "A-03", label: "03", x: 54, y: 18, w: 20, h: 26 },
+        { code: "A-04", label: "04", x: 77, y: 18, w: 16, h: 26 },
+        { code: "B-01", label: "05", x: 8, y: 58, w: 20, h: 24 },
+        { code: "B-02", label: "06", x: 31, y: 58, w: 20, h: 24 },
+        { code: "B-03", label: "07", x: 54, y: 58, w: 20, h: 24 },
+        { code: "B-04", label: "08", x: 77, y: 58, w: 16, h: 24 },
+      ];
+      const rowBLayouts = [
+        { code: "B-01", label: "B1", x: 9, y: 21, w: 18, h: 55 },
+        { code: "B-02", label: "B2", x: 31, y: 21, w: 18, h: 55 },
+        { code: "B-03", label: "B3", x: 53, y: 21, w: 18, h: 55 },
+        { code: "B-04", label: "B4", x: 75, y: 21, w: 16, h: 55 },
+      ];
+      const cameraProfiles = [
+        {
+          id: "overview",
+          button: "CAM-01",
+          sub: "Full floor",
+          title: "Camera 01 overview",
+          note: "All calibrated slot regions on the live frame",
+          modeLabel: "Overview live",
+          meta: "CAM-01 roof overview",
+          coverage: "A, B, C rows",
+          layouts: slotLayouts,
+          frameClass: "overview-camera",
+        },
+        {
+          id: "entry",
+          button: "CAM-02",
+          sub: "Entry lane",
+          title: "Camera 02 entry lane",
+          note: "Plate capture with front-row slot context",
+          modeLabel: "Entry live",
+          meta: "CAM-02 entrance lane",
+          coverage: "A row, gate",
+          layouts: entryLayouts,
+          frameClass: "entry-camera",
+        },
+        {
+          id: "row-b",
+          button: "CAM-03",
+          sub: "Row B",
+          title: "Camera 03 row B",
+          note: "Closer angle for the middle parking row",
+          modeLabel: "Row live",
+          meta: "CAM-03 middle row",
+          coverage: "B row",
+          layouts: rowBLayouts,
+          frameClass: "row-camera",
+        },
+        {
+          id: "spot",
+          button: "Slot focus",
+          sub: "Selected bay",
+          title: "Dedicated slot camera",
+          note: "Direct camera for one parking position",
+          modeLabel: "Slot live",
+          meta: "CAM-04 dedicated bay",
+          coverage: "Single slot",
+          layouts: [],
+          frameClass: "spot-camera",
+        },
+      ];
       const defaultSlots = [
         "A-01",
         "A-02",
@@ -1160,8 +1415,10 @@
         events: [],
         vehicles: [],
         alerts: [],
+        activeCameraId: "overview",
         connected: false,
         apiOnline: false,
+        focusedSlotCode: "A-04",
       };
 
       const elements = {
@@ -1171,7 +1428,17 @@
         alertList: document.querySelector("#alertList"),
         alertMetric: document.querySelector("#alertMetric"),
         cameraClock: document.querySelector("#cameraClock"),
+        cameraCoverage: document.querySelector("#cameraCoverage"),
+        cameraFocusSlot: document.querySelector("#cameraFocusSlot"),
+        cameraFocusState: document.querySelector("#cameraFocusState"),
+        cameraFrame: document.querySelector("#cameraFrame"),
+        cameraMeta: document.querySelector("#cameraMeta"),
+        cameraModeLabel: document.querySelector("#cameraModeLabel"),
+        cameraName: document.querySelector("#cameraName"),
+        cameraNote: document.querySelector("#cameraNote"),
         cameraOverlay: document.querySelector("#cameraOverlay"),
+        cameraSwitcher: document.querySelector("#cameraSwitcher"),
+        cameraTitle: document.querySelector("#cameraTitle"),
         clock: document.querySelector("#clock"),
         demoButton: document.querySelector("#demoButton"),
         eventEmpty: document.querySelector("#eventEmpty"),
@@ -1196,6 +1463,7 @@
 
       elements.apiUrl.textContent = apiBase;
       elements.wsUrl.textContent = wsBase;
+      elements.cameraSwitcher.addEventListener("click", handleCameraSwitch);
       elements.refreshButton.addEventListener("click", refreshData);
       elements.demoButton.addEventListener("click", loadDemoState);
 
@@ -1234,6 +1502,15 @@
         } catch (_error) {
           return { ok: false, data: null };
         }
+      }
+
+      function handleCameraSwitch(event) {
+        const button = event.target.closest("[data-camera-id]");
+        if (!button) return;
+        state.activeCameraId = button.dataset.cameraId;
+        const camera = getActiveCamera();
+        elements.slotUpdated.textContent = `Viewing ${camera.button}`;
+        render();
       }
 
       function connectLiveStream() {
@@ -1344,6 +1621,8 @@
       }
 
       function render() {
+        renderCameraSwitcher();
+        renderCameraDetails();
         renderCameraOverlay();
         renderSlots();
         renderEvents();
@@ -1352,10 +1631,55 @@
         renderMetrics();
       }
 
+      function renderCameraSwitcher() {
+        elements.cameraSwitcher.replaceChildren(
+          ...cameraProfiles.map((camera) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "camera-option";
+            button.dataset.cameraId = camera.id;
+            button.setAttribute("aria-pressed", String(camera.id === state.activeCameraId));
+
+            const title = document.createElement("strong");
+            title.textContent = camera.button;
+
+            const sub = document.createElement("span");
+            sub.textContent = camera.id === "spot" ? state.focusedSlotCode : camera.sub;
+
+            button.append(title, sub);
+            return button;
+          })
+        );
+      }
+
+      function renderCameraDetails() {
+        const camera = getActiveCamera();
+        const focusSlot = getFocusedSlot();
+        const activeLayouts = getActiveCameraLayouts(camera);
+        elements.cameraTitle.textContent = camera.title;
+        elements.cameraNote.textContent = camera.note;
+        elements.cameraModeLabel.textContent = camera.modeLabel;
+        elements.cameraName.textContent = camera.button;
+        elements.cameraCoverage.textContent = camera.coverage;
+        elements.cameraFrame.className = `camera-frame ${camera.frameClass}`;
+        elements.cameraMeta.textContent = `${camera.meta}, ${activeLayouts.length} region${activeLayouts.length === 1 ? "" : "s"}`;
+        if (camera.id === "spot" && focusSlot) {
+          elements.cameraFocusSlot.textContent = focusSlot.slot_code;
+          elements.cameraFocusState.textContent = focusSlot.plate_text
+            ? `${focusSlot.status}, ${focusSlot.plate_text}`
+            : focusSlot.status;
+          return;
+        }
+        elements.cameraFocusSlot.textContent = "Multiple";
+        elements.cameraFocusState.textContent = `${activeLayouts.length} calibrated`;
+      }
+
       function renderCameraOverlay() {
+        const camera = getActiveCamera();
+        const activeLayouts = getActiveCameraLayouts(camera);
         const byCode = new Map(state.slots.map((slot) => [slot.slot_code, slot]));
         elements.cameraOverlay.replaceChildren(
-          ...slotLayouts.map((layout) => {
+          ...activeLayouts.map((layout) => {
             const slot = byCode.get(layout.code) || { slot_code: layout.code, status: "vacant", plate_text: "" };
             const stateName = normalizeSlotState(slot.status);
             const item = document.createElement("button");
@@ -1366,6 +1690,7 @@
             item.style.setProperty("--w", `${layout.w}%`);
             item.style.setProperty("--h", `${layout.h}%`);
             item.setAttribute("aria-label", `${layout.code}, camera slot ${layout.label}, ${slot.status}`);
+            item.addEventListener("click", () => focusSlot(slot.slot_code));
 
             const topline = document.createElement("div");
             topline.className = "overlay-topline";
@@ -1389,6 +1714,27 @@
         );
       }
 
+      function getActiveCamera() {
+        return cameraProfiles.find((camera) => camera.id === state.activeCameraId) || cameraProfiles[0];
+      }
+
+      function getActiveCameraLayouts(camera) {
+        if (camera.id !== "spot") return camera.layouts;
+        const base = slotLayouts.find((layout) => layout.code === state.focusedSlotCode) || slotLayouts[0];
+        return [{ ...base, label: base.code, x: 18, y: 19, w: 64, h: 56 }];
+      }
+
+      function getFocusedSlot() {
+        return state.slots.find((slot) => slot.slot_code === state.focusedSlotCode);
+      }
+
+      function focusSlot(slotCode) {
+        state.focusedSlotCode = slotCode;
+        state.activeCameraId = "spot";
+        elements.slotUpdated.textContent = `Focused ${slotCode}`;
+        render();
+      }
+
       function normalizeSlotState(status) {
         if (status === "fire" || status === "anomaly" || status === "alert") return "alert";
         if (status === "occupied" || status === "reserved") return status;
@@ -1401,6 +1747,15 @@
             const item = document.createElement("article");
             item.className = `slot ${normalizeSlotState(slot.status)}`;
             item.setAttribute("aria-label", `${slot.slot_code} ${slot.status}`);
+            item.setAttribute("role", "button");
+            item.tabIndex = 0;
+            item.addEventListener("click", () => focusSlot(slot.slot_code));
+            item.addEventListener("keydown", (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                focusSlot(slot.slot_code);
+              }
+            });
 
             const code = document.createElement("div");
             code.className = "slot-code";
