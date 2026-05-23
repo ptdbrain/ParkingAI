@@ -1345,7 +1345,7 @@
         { code: "B-03", label: "B3", x: 53, y: 21, w: 18, h: 55 },
         { code: "B-04", label: "B4", x: 75, y: 21, w: 16, h: 55 },
       ];
-      const cameraProfiles = [
+      const fallbackCameraProfiles = [
         {
           id: "overview",
           button: "CAM-01",
@@ -1395,6 +1395,7 @@
           frameClass: "spot-camera",
         },
       ];
+      let cameraProfiles = [...fallbackCameraProfiles];
       const defaultSlots = [
         "A-01",
         "A-02",
@@ -1474,9 +1475,19 @@
       connectLiveStream();
 
       async function refreshData() {
-        const [slots, vehicles] = await Promise.all([fetchJson("/slots"), fetchJson("/vehicles")]);
-        state.apiOnline = Boolean(slots.ok || vehicles.ok);
+        const [slots, vehicles, cameras] = await Promise.all([
+          fetchJson("/slots"),
+          fetchJson("/vehicles"),
+          fetchJson("/cameras"),
+        ]);
+        state.apiOnline = Boolean(slots.ok || vehicles.ok || cameras.ok);
         setApiState(state.apiOnline, state.apiOnline ? "online" : "offline");
+        if (cameras.ok && Array.isArray(cameras.data) && cameras.data.length > 0) {
+          cameraProfiles = cameras.data.map(mapCameraProfile);
+          if (!cameraProfiles.some((camera) => camera.id === state.activeCameraId)) {
+            state.activeCameraId = cameraProfiles[0].id;
+          }
+        }
         if (slots.ok && Array.isArray(slots.data) && slots.data.length > 0) {
           state.slots = slots.data.map((slot) => ({
             slot_code: slot.slot_code,
@@ -1492,6 +1503,54 @@
           }));
         }
         render();
+      }
+
+      function mapCameraProfile(camera) {
+        const idMap = {
+          "cam-01": "overview",
+          "cam-02": "entry",
+          "cam-03": "row-b",
+          "cam-slot": "spot",
+        };
+        const buttonMap = {
+          "cam-01": "CAM-01",
+          "cam-02": "CAM-02",
+          "cam-03": "CAM-03",
+          "cam-slot": "Slot focus",
+        };
+        const subMap = {
+          overview: "Full floor",
+          entry: "Entry lane",
+          row: "Row B",
+          slot: state.focusedSlotCode,
+        };
+        const frameClassMap = {
+          overview: "overview-camera",
+          entry: "entry-camera",
+          row: "row-camera",
+          slot: "spot-camera",
+        };
+        const id = idMap[camera.camera_id] || camera.camera_id;
+        return {
+          id,
+          button: buttonMap[camera.camera_id] || camera.camera_id.toUpperCase(),
+          sub: subMap[camera.kind] || camera.coverage,
+          title: camera.name,
+          note: camera.kind === "slot" ? "Direct camera for one parking position" : "Calibrated slot regions on the live frame",
+          modeLabel: `${camera.kind} live`,
+          meta: camera.stream_url || camera.name,
+          coverage: camera.coverage,
+          streamUrl: camera.stream_url,
+          layouts: (camera.regions || []).map((region) => ({
+            code: region.slot_code,
+            label: region.label,
+            x: region.x,
+            y: region.y,
+            w: region.width,
+            h: region.height,
+          })),
+          frameClass: frameClassMap[camera.kind] || "overview-camera",
+        };
       }
 
       async function fetchJson(path) {
@@ -1720,6 +1779,7 @@
 
       function getActiveCameraLayouts(camera) {
         if (camera.id !== "spot") return camera.layouts;
+        if (camera.layouts.length > 0) return camera.layouts;
         const base = slotLayouts.find((layout) => layout.code === state.focusedSlotCode) || slotLayouts[0];
         return [{ ...base, label: base.code, x: 18, y: 19, w: 64, h: 56 }];
       }
@@ -1732,6 +1792,27 @@
         state.focusedSlotCode = slotCode;
         state.activeCameraId = "spot";
         elements.slotUpdated.textContent = `Focused ${slotCode}`;
+        render();
+        fetchSlotCamera(slotCode);
+      }
+
+      async function fetchSlotCamera(slotCode) {
+        const camera = await fetchJson(`/cameras/by-slot/${encodeURIComponent(slotCode)}`);
+        if (!camera.ok || !camera.data) return;
+        const mapped = mapCameraProfile(camera.data);
+        const index = cameraProfiles.findIndex((item) => item.id === "spot");
+        const nextProfile = {
+          ...mapped,
+          id: "spot",
+          button: "Slot focus",
+          sub: slotCode,
+          frameClass: "spot-camera",
+        };
+        if (index >= 0) {
+          cameraProfiles[index] = nextProfile;
+        } else {
+          cameraProfiles.push(nextProfile);
+        }
         render();
       }
 

@@ -6,11 +6,11 @@ from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.pipeline import PipelineRuntime
-from app.db.repositories import SlotRepository, VehicleRepository
+from app.db.repositories import CameraRepository, SlotRepository, VehicleRepository
 from app.db.session import get_db_session
+from app.services.camera_service import CameraService
 from app.services.slot_service import SlotService
 from app.services.vehicle_service import VehicleService
-
 
 DbSession = Annotated[AsyncSession, Depends(get_db_session)]
 
@@ -25,6 +25,12 @@ def get_slot_service(session: DbSession) -> SlotService:
     """Inject slot service with its repository."""
 
     return SlotService(SlotRepository(session))
+
+
+def get_camera_service(session: DbSession) -> CameraService:
+    """Inject camera service with its repository."""
+
+    return CameraService(CameraRepository(session))
 
 
 def get_pipeline_runtime(request: Request) -> PipelineRuntime:

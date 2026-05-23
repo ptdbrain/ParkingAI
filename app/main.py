@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.ai.pipeline import PipelineRuntime
-from app.backend.api.routes import slots, vehicles, ws
+from app.backend.api.routes import cameras, slots, vehicles, ws
 from app.config import get_settings
 from app.core.camera import FakeFrameGenerator
 from app.db.session import init_db
@@ -56,6 +56,7 @@ def create_app() -> FastAPI:
     )
     app.include_router(vehicles.router)
     app.include_router(slots.router)
+    app.include_router(cameras.router)
     app.include_router(ws.router)
     return app
 
