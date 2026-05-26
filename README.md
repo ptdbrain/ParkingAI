@@ -44,6 +44,8 @@ Every AI worker emits this schema:
 
 `type` is strictly one of `car`, `slot`, `fire`, or `anomaly`.
 
+VLM anomaly events additionally include `description`, `model_backend`, `vlm_label`, and `vlm_prompt` so the dashboard can show why an anomaly was raised.
+
 ## Run Locally
 
 Create a lightweight environment:
@@ -155,13 +157,27 @@ python training/train_easyocr.py \
 
 The best checkpoint is written to `models/ocr/crnn_ocr_best.pt`; the latest epoch is written to `models/ocr/crnn_ocr_last.pt`.
 
+## VLM Runtime
+
+The VLM worker now runs through a replaceable adapter contract. The default backend is deterministic mock inference, so the pipeline stays runnable while you prepare a real local VLM:
+
+```bash
+VLM_ENABLED=true
+VLM_BACKEND=mock
+VLM_FRAME_SAMPLE_INTERVAL=1
+VLM_CONFIDENCE_THRESHOLD=0.50
+VLM_PROMPT="Detect parking anomalies, loitering, or parking outside lines."
+```
+
+Set `VLM_FRAME_SAMPLE_INTERVAL` above `1` on low-end hardware to reduce VLM calls. Real Moondream2 or Florence-2 support should be added as a new adapter in `app/ai/vlm.py`, then selected through `VLM_BACKEND`.
+
 ## Extension Points
 
 - Replace `YOLOWorker.detect` with ONNX Runtime or OpenVINO inference.
 - Run `OCRWorker` in `real` mode with EasyOCR, PaddleOCR, or a compact ONNX OCR model.
 - Generate OCR training crops from the prepared manifest with `python scripts/build_ocr_crops.py`.
 - Replace `ReIDWorker.extract_embedding` with a real ResNet18/ViT embedding model.
-- Replace `VLMWorker.infer` with a quantized Moondream2 or Florence-2 adapter.
+- Add a quantized Moondream2 or Florence-2 adapter behind the VLM adapter contract in `app/ai/vlm.py`.
 - Use Alembic migrations from `database/migrations` before deployment.
 
 ## Artifact Policy

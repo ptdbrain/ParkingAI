@@ -4,7 +4,6 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -16,6 +15,13 @@ def _env_float(name: str, default: float) -> float:
 def _env_int(name: str, default: int) -> int:
     value = os.getenv(name)
     return default if value is None else int(value)
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 @dataclass(slots=True)
@@ -51,6 +57,13 @@ class Settings:
     ocr_confidence_threshold: float = _env_float("OCR_CONFIDENCE_THRESHOLD", 0.60)
     reid_match_threshold: float = _env_float("REID_MATCH_THRESHOLD", 0.78)
     vlm_confidence_threshold: float = _env_float("VLM_CONFIDENCE_THRESHOLD", 0.50)
+    vlm_enabled: bool = _env_bool("VLM_ENABLED", True)
+    vlm_backend: str = os.getenv("VLM_BACKEND", "mock")
+    vlm_frame_sample_interval: int = _env_int("VLM_FRAME_SAMPLE_INTERVAL", 1)
+    vlm_prompt: str = os.getenv(
+        "VLM_PROMPT",
+        "Detect parking anomalies, loitering, or parking outside lines.",
+    )
 
     embedding_dim: int = _env_int("REID_EMBEDDING_DIM", 512)
     faiss_index_path: Path = Path(os.getenv("FAISS_INDEX_PATH", PROJECT_ROOT / "database/faiss_vehicle.index"))
